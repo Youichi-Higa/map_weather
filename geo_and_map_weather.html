@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>位置情報取得&map・降水量表示</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+
+      h1 {
+        margin: 10px;
+        text-align: center;
+      }
+
+      ul {
+        list-style: none;
+        width: max-content;
+        border: solid 1px black;
+        margin: 10px auto;
+        padding: 0;
+        display: none;
+      }
+
+      li {
+        border: solid 1px black;
+        padding: 5px 10px;
+      }
+
+      #map {
+        height: calc(100% - 380px);
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>位置情報取得&map・降水量表示</h1>
+    <div id="map"></div>
+    <ul>
+      <li id="date"></li>
+      <li id="current"></li>
+      <li id="10m"></li>
+      <li id="20m"></li>
+      <li id="30m"></li>
+      <li id="40m"></li>
+      <li id="50m"></li>
+      <li id="60m"></li>
+    </ul>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <!-- axiosライブラリの読み込み -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script
+      src="https://www.bing.com/api/maps/mapcontrol?key="
+      async
+      defer
+    ></script>
+    <script src="https://www.bing.com/api/maps/mapcontrol?mkt=ja-jp&key=AugtXOIRkvbT_vUv3vRTNdbegRitaxJj_UbGqgq_6RuMwoNh_fhZQm7QFXMBu-JV"></script>
+
+    <script>
+      // map表示用に使用する変数
+      let map;
+
+      // yahoo気象情報APIへリクエストする関数を定義
+      function weather(lat, lng) {
+        // yahoo気象情報APIにリクエストを送るurlを準備
+        const url = "https://map.yahooapis.jp/weather/V1/place";
+        const appid =
+          "dj00aiZpPWUwZzFYemFOMFBCcSZzPWNvbnN1bWVyc2VjcmV0Jng9ODE-";
+        //リクエストの順番注意！！！経度(lng),緯度(lat)
+        const coord = `${lng},${lat}`;
+        console.log(coord);
+
+        axios
+          .get(
+            "https://map.yahooapis.jp/weather/V1/place?coordinates=" +
+              coord +
+              "&output=jsonp&appid=" +
+              appid
+          )
+          .then(function (response) {
+            console.log(response);
+            console.log(response.data.Feature[0].Property.WeatherList.Weather);
+            console.log(response.data.Feature[0].Name);
+            const name = response.data.Feature[0].Name;
+            const data = [];
+            response.data.Feature[0].Property.WeatherList.Weather.forEach(
+              function (x) {
+                data.push(x.Rainfall);
+              }
+            );
+            $("ul").fadeIn();
+            $("#date").html(`現在${name}`);
+            $("#current").html(`現在の降水強度 　（実測値）：${data[0]}mm/h`);
+            $("#10m").html(`10分後の降水強度（予測値）：${data[1]}mm/h`);
+            $("#20m").html(`20分後の降水強度（予測値）：${data[2]}mm/h`);
+            $("#30m").html(`30分後の降水強度（予測値）：${data[3]}mm/h`);
+            $("#40m").html(`40分後の降水強度（予測値）：${data[4]}mm/h`);
+            $("#50m").html(`50分後の降水強度（予測値）：${data[5]}mm/h`);
+            $("#60m").html(`60分後の降水強度（予測値）：${data[6]}mm/h`);
+          })
+          .catch(function (error) {
+            // リクエスト失敗時の処理(errorにエラー内容が入っている)
+            console.log(error);
+          })
+          .finally(function () {
+            // 成功失敗に関わらず必ず実行
+            console.log("done!");
+          });
+      }
+
+      // ピンを作成する関数を定義
+      function pushPin(lat, lng, map) {
+        const location = new Microsoft.Maps.Location(lat, lng);
+        const pin = new Microsoft.Maps.Pushpin(location, {
+          color: "red", // 色の設定
+          visible: true, // これ書かないとピンが見えない
+        });
+        map.entities.push(pin);
+      }
+
+      // infoboxを作成する関数を定義
+      // function generateInfobox(lat, lng, map) {
+      //   const location = new Microsoft.Maps.Location(lat, lng);
+      //   const infobox = new Microsoft.Maps.Infobox(location, {
+      //     title: "タイトル",
+      //     description: "説明",
+      //   });
+      //   infobox.setMap(map);
+      // }
+
+      // 現在地を取得するときのオプション
+      const option = {
+        enableHighAccuracy: true,
+        maximumAge: 20000,
+        timeout: 1000000,
+      };
+
+      // 現在地の取得に成功したときの関数
+      function mapsInit(position) {
+        // console.log(position);
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        // const data = [lat, lng];
+        map = new Microsoft.Maps.Map("#map", {
+          center: {
+            latitude: lat,
+            longitude: lng,
+          },
+          zoom: 16,
+        });
+
+        // ピンを立てる関数を実行
+        pushPin(lat, lng, map);
+        // infoboxを作成する関数を実行
+        // generateInfobox(lat, lng, map);
+        // yahoo気象情報APIへリクエストする関数を実行
+        weather(lat, lng);
+      }
+
+      // 現在位置の取得に失敗したときの関数
+      function showError(error) {
+        let e = "";
+        if (error.code == 1) {
+          e = "位置情報が許可されてません";
+        } else if (error.code == 2) {
+          e = "現在位置を特定できません";
+        } else if (error.code == 3) {
+          e = "位置情報を取得する前にタイムアウトになりました";
+        }
+        alert("error:" + e);
+      }
+
+      function getPosition() {
+        navigator.geolocation.getCurrentPosition(mapsInit, showError, option);
+      }
+
+      // 地図を表示する処理
+      window.onload = function () {
+        getPosition();
+      };
+    </script>
+  </body>
+</html>
