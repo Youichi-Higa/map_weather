@@ -12,7 +12,7 @@
 
 ## もっと頑張りたかったところ
 
-- 最初に手をつけた長文要約生成API（https://cl.asahi.com/api_data/longsum.html）にPOSTしてからのデータ取得できなかった。
+- 最初に手をつけた長文要約生成APIにPOSTしてからのデータ取得できなかった。 https://cl.asahi.com/api_data/longsum.html
 
 ## 感想
 - 変数、スコープ、引き数などなど、基本的な理解がやはりまだまだ。いつか理解できるようになるまで、コード書き続けるしかない。
