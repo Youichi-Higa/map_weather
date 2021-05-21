@@ -13,8 +13,10 @@
         padding: 0;
       }
 
-      h1 {
-        margin: 10px;
+      p {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 20px 0px 20px;
         text-align: center;
       }
 
@@ -41,10 +43,9 @@
   </head>
 
   <body>
-    <h1>位置情報取得&map・降水量表示</h1>
+    <p id="title"></p>
     <div id="map"></div>
     <ul>
-      <li id="date"></li>
       <li id="current"></li>
       <li id="10m"></li>
       <li id="20m"></li>
@@ -75,8 +76,9 @@
         const url = "https://map.yahooapis.jp/weather/V1/place";
         const appid =
           "dj00aiZpPWUwZzFYemFOMFBCcSZzPWNvbnN1bWVyc2VjcmV0Jng9ODE-";
-        //リクエストの順番注意！！！経度(lng),緯度(lat)
-        const coord = `${lng},${lat}`;
+        //リクエストの順番注意！！！経度(lng),緯度(lat) データの渡し方は下の２行のどちらでもOK
+        // const coord = `${lng},${lat}`;
+        const coord = [lng, lat];
         console.log(coord);
 
         axios
@@ -98,7 +100,7 @@
               }
             );
             $("ul").fadeIn();
-            $("#date").html(`現在${name}`);
+            $("#title").html(`現在${name}`);
             $("#current").html(`現在の降水強度 　（実測値）：${data[0]}mm/h`);
             $("#10m").html(`10分後の降水強度（予測値）：${data[1]}mm/h`);
             $("#20m").html(`20分後の降水強度（予測値）：${data[2]}mm/h`);
